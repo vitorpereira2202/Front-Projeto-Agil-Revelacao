@@ -10,13 +10,13 @@ def cadastro():
     st.title("Cadastro")
 
     email = st.text_input("Email", key="signup_email")
-    password = st.text_input("Senha", type="password", key="signup_password")
+    senha = st.text_input("Senha", type="senha", key="signup_senha")
 
     if st.button("Cadastrar"):
         if email in users:
             st.error("Email já cadastrado.")
         else:
-            users[email] = password
+            users[email] = senha
             st.success("Usuário cadastrado com sucesso! Agora você pode fazer login.")
             st.session_state["signup_success"] = True
 

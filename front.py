@@ -2,17 +2,25 @@ import streamlit as st
 import pandas as pd
 import requests
 
+# Conectando arquivo CSS
+
+with open("style.css") as f:
+    st.markdown(f"<style> {f.read()}</style>", unsafe_allow_html = True)
+
 Base_url= "http://127.0.0.1:5000"
 
 users = {}
+st.button("Botão de teste")
+
 
 def cadastro():
     st.title("Cadastro")
 
     email = st.text_input("Email", key="signup_email")
     senha = st.text_input("Senha", type="password", key="signup_password")
+    cadastrar = st.button("Cadastrar") # pensei em nomear os botoes para poder editar cada um
 
-    if st.button("Cadastrar"):
+    if cadastrar:
         if email in users:
             st.error("Email já cadastrado.")
         else:
@@ -35,6 +43,11 @@ def Login():
         else:
             st.success("Login realizado com sucesso!")
             st.session_state["logged_in"] = True 
+
+def predio_um():
+    st.title("Térreo - Biblioteca")
+
+
 
 
 def main():

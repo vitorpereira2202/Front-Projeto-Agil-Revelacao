@@ -10,7 +10,7 @@ def cadastro():
     st.title("Cadastro")
 
     email = st.text_input("Email", key="signup_email")
-    senha = st.text_input("Senha", type="senha", key="signup_senha")
+    senha = st.text_input("Senha", type="password", key="signup_password")
 
     if st.button("Cadastrar"):
         if email in users:
@@ -24,13 +24,13 @@ def cadastro():
 def Login():
     st.title("Login")
 
-    Email = st.text_input("Email", key="login_email")
-    Password = st.text_input("Senha", type="password", key="login_password")
+    email = st.text_input("Email", key="login_email")
+    senha = st.text_input("Senha", type="password", key="login_password")
 
     if st.button("Entrar"):
-        if Email not in users:
+        if senha not in users:
             st.error("Usuário não cadastrado.")
-        elif users[Email] != Password:
+        elif users[email] != senha:
             st.error("Senha incorreta.")
         else:
             st.success("Login realizado com sucesso!")

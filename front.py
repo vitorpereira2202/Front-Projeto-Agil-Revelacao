@@ -12,13 +12,33 @@ def cadastro():
     email = st.text_input("Email", key="signup_email")
     senha = st.text_input("Senha", type="password", key="signup_password")
 
-    if st.button("Cadastrar"):
+    if st.button("Cadastrar",type='primary'):
         if email in users:
             st.error("Email já cadastrado.")
         else:
             users[email] = senha
             st.success("Usuário cadastrado com sucesso! Agora você pode fazer login.")
             st.session_state["signup_success"] = True
+    
+    st.markdown("""
+        <style>
+        button[kind="primary"] {
+        background-color: black;
+        }
+        
+        button {
+            height: auto;
+            padding-top: 10px !important;   
+            padding-bottom: 10px !important;
+            padding-left: 25px !important;
+            padding-right: 25px !important;       
+            
+        }            
+
+
+ 
+        </style>
+    """, unsafe_allow_html=True)
 
 
 def predios():

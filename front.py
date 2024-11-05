@@ -2,9 +2,11 @@ import streamlit as st
 import pandas as pd
 import requests
 
+# 
 Base_url= "http://127.0.0.1:5000"
 
 users = {}
+
 
 def fetch_data(endpoint):
     try:
@@ -25,9 +27,9 @@ def cadastro():
     email = st.text_input("Email", key="signup_email")
     senha = st.text_input("Senha", type="password", key="signup_password")
 
-    if st.button("Cadastrar"):
-        if not email or not senha:
-            st.error("Email e senha são obrigatórios.")
+    if st.button("Cadastrar",type='primary'):
+        if email in users:
+            st.error("Email já cadastrado.")
         else:
             user_data = {"email": email, "senha": senha}
             response = requests.post(f"{Base_url}/cadastro", json=user_data)
@@ -56,6 +58,29 @@ def cadastro():
         }            
         </style>
     """, unsafe_allow_html=True)
+
+def Login():
+    st.title("Login")
+
+    email = st.text_input("Email", key="login_email")
+    senha = st.text_input("Senha", type="password", key="login_password")
+
+    if st.button("Entrar"):
+        if not email or not senha:
+            st.error("Email e senha são obrigatórios.")
+        else:
+            user_data = {"email": email, "senha": senha}
+            response = requests.post(f"{Base_url}/login", json=user_data)
+            
+            if response.ok:  # Verifica se a resposta foi bem-sucedida
+                st.success("Login bem-sucedido!")
+            else:
+                try:
+                    error_message = response.json().get('msg', 'Erro ao fazer login.')
+                except ValueError:
+                    error_message = response.text
+                st.error(error_message)
+
 
 
 def predios():
@@ -91,95 +116,103 @@ def predios():
         }        
         </style>
     """, unsafe_allow_html=True)
-
-# def mostrar_salas(predio_id):
-#     # Dados de exemplo das salas divididas por andar
-#     salas = {
-#         "2º Andar": [
-#             {"nome": "Sala 1", "status": "DISPONIVEL"},
-#             {"nome": "Sala 2", "status": "INDISPONIVEL"},
-#             {"nome": "Sala 3", "status": "DISPONIVEL"},
-#             {"nome": "Sala 4", "status": "INDISPONIVEL"}
-#         ],
-#         "5º Andar": [
-#             {"nome": "Sala 1", "status": "DISPONIVEL"},
-#             {"nome": "Sala 2", "status": "DISPONIVEL"}
-#         ]
-#     }
-
-#     st.markdown("""
-#     <style>
-#         .sala {
-#             padding: 20px;
-#             color: black;
-#             font-weight: bold;
-#             border-radius: 5px;
-#             text-align: center;
-#             margin: 10px;
-#             width: 150px;
-#             height: 100px;
-#             display: inline-block;
-#         }
-#         .disponivel {
-#             background-color: #4CAF50;
-#         }
-#         .indisponivel {
-#             background-color: #F44336;
-#         }
-#     </style>
-#     """, unsafe_allow_html=True)
-
-#     st.title(f"Prédio {predio_id}")
-#     for andar, salas_do_andar in salas.items():
-#         st.subheader(andar)
-#         for sala in salas_do_andar:
-#             status_class = "disponivel" if sala["status"] == "DISPONIVEL" else "indisponivel"
-#             st.markdown(
-#                 f'<div class="sala {status_class}">{sala["nome"]}<br>{sala["status"]}</div>',
-#                 unsafe_allow_html=True
-#             )
-
-def predio_1():
-    st.title("Prédio 1")
-    st.write("Detalhes do Prédio 1")
-    predio = fetch_data('predios/p1')
-    display_table(predio)
+def renderizar_aquarios(dados_predio, nome_predio):
+    st.title(f"Prédio {nome_predio}")
     
+    # CSS para estilizar apenas os aquários e andares
+    st.markdown("""
+        <style>
+        .aquario-card {
+            display: inline-block;
+            padding: 20px;
+            margin: 10px;
+            width: 120px;
+            height: 80px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            border-radius: 8px;
+        }
+        .disponivel {
+            background-color: #4CAF50; /* Verde */
+        }
+        .indisponivel {
+            background-color: #F44336; /* Vermelho */
+        }
+        .andar-header {
+            background-color: #e0e0e0;
+            padding: 10px;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    for andar_info in dados_predio:
+        andar = andar_info['andar']
+        aquarios = andar_info['aquarios']
+        
+        # Cabeçalho do andar
+        st.markdown(f'<div class="andar-header">Andar {andar}º</div>', unsafe_allow_html=True)
+        
+        # Exibição dos aquários como cartões
+        for aquario in aquarios:
+            numero = aquario['numero']
+            ocupado = aquario['ocupado']
+            status_class = "disponivel" if not ocupado else "indisponivel"
+            status_text = "DISPONÍVEL" if not ocupado else "INDISPONÍVEL"
+            
+            # Renderiza cada aquário com a classe CSS correspondente
+            st.markdown(
+                f'<div class="aquario-card {status_class}">Sala {numero}<br>{status_text}</div>',
+                unsafe_allow_html=True
+            )
+
+# Funções para exibir os aquários de cada prédio
+def predio_1():
+    response = fetch_data("predios/p1")
+    if response:
+        renderizar_aquarios(response, "P1")
+    else:
+        st.error("Erro ao carregar os dados do Prédio 1")
 
 def predio_2():
-    st.title("Prédio 2")
-    st.write("Detalhes do Prédio 2")    
-    predio = fetch_data('predios/p2')
-    display_table(predio)
+    response = fetch_data("predios/p2")
+    if response:
+        renderizar_aquarios(response, "P2")
+    else:
+        st.error("Erro ao carregar os dados do Prédio 2")
 
 def predio_3():
-    st.title("Prédio 3")
-    st.write("Detalhes do Prédio 4")
-    predio = fetch_data('predios/p4')
-    display_table(predio)
+    response = fetch_data("predios/p4")
+    if response:
+        renderizar_aquarios(response, "P4")
+    else:
+        st.error("Erro ao carregar os dados do Prédio 3")
+# def predio_1():
+#     st.title("Prédio 1")
+#     st.write("Detalhes do Prédio 1")
+#     predio = fetch_data('predios/p1')
+#     display_table(predio)
+    
+
+# def predio_2():
+#     st.title("Prédio 2")
+#     st.write("Detalhes do Prédio 2")    
+#     predio = fetch_data('predios/p2')
+#     display_table(predio)
+
+# def predio_3():
+#     st.title("Prédio 3")
+#     st.write("Detalhes do Prédio 4")
+#     predio = fetch_data('predios/p4')
+#     display_table(predio)
 
 
-def Login():
-    st.title("Login")
 
-    email = st.text_input("Email", key="login_email")
-    senha = st.text_input("Senha", type="password", key="login_password")
-
-    if st.button("Entrar"):
-        if not email or not senha:
-            st.error("Email e senha são obrigatórios.")
-        else:
-            user_data = {"email": email, "senha": senha}
-            response = requests.post(f"{Base_url}/login", json=user_data)
-            
-            if response.ok:  # Verifica se a resposta foi bem-sucedida
-                st.success("Login bem-sucedido!")
-            else:
-                try:
-                    error_message = response.json().get('msg', 'Erro ao fazer login.')
-                except ValueError:
-                    error_message = response.text
-                st.error(error_message)
 
 def main():
     st.sidebar.title("Menu")

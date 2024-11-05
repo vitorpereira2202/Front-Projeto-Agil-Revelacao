@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import requests as rq
+import requests
 
 Base_url= "http://127.0.0.1:5000"
 
@@ -8,10 +8,10 @@ users = {}
 
 def fetch_data(endpoint):
     try:
-        response = rq.get(f'{Base_url}/{endpoint}')
+        response = requests.get(f'{Base_url}/{endpoint}')
         response.raise_for_status()
         return response.json()
-    except rq.exceptions.HTTPError as err:
+    except requests.exceptions.HTTPError as err:
         st.error(f"Erro ao acessar {endpoint}: {err}")
         return None
 

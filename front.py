@@ -1,10 +1,23 @@
 import streamlit as st
 import pandas as pd
-import requests
+import requests as rq
 
 Base_url= "http://127.0.0.1:5000"
 
 users = {}
+
+def fetch_data(endpoint):
+    try:
+        response = rq.get(f'{Base_url}/{endpoint}')
+        response.raise_for_status()
+        return response.json()
+    except rq.exceptions.HTTPError as err:
+        st.error(f"Erro ao acessar {endpoint}: {err}")
+        return None
+
+def display_table(data):
+    if data:
+        st.table(data)
 
 def cadastro():
     st.title("Cadastro")
@@ -89,18 +102,21 @@ def predios():
 
 def predio_1():
     st.title("Prédio 1")
-    st.write("Detalhes do Prédio 1")
-    email = st.text_input("Email", key="signup_email")
+    predio = fetch_data('predios/p1')
+    display_table(predio)
+    
 
 def predio_2():
     st.title("Prédio 2")
-    st.write("Detalhes do Prédio 2")
-    email = st.text_input("Email", key="signup_email")
+    st.write("Detalhes do Prédio 2")    
+    predio = fetch_data('predios/p2')
+    display_table(predio)
 
 def predio_3():
     st.title("Prédio 3")
-    st.write("Detalhes do Prédio 3")
-    email = st.text_input("Email", key="signup_email")
+    st.write("Detalhes do Prédio 4")
+    predio = fetch_data('predios/p4')
+    display_table(predio)
 
 def Login():
     st.title("Login")

@@ -32,18 +32,40 @@ def predios():
     col1, col2, col3 = st.columns(3)
 
     with col2:  # Centraliza o botão na segunda coluna
-        if st.button("Prédio 1", key='button1'):
+        if st.button("Prédio 1", key='button1', type="primary"):
             st.session_state.page = "predio_1"
 
     # Outro botão, se necessário
     with col2:  # Coloca o próximo botão na mesma coluna
-        if st.button("Prédio 2", key='button2'):
+        if st.button("Prédio 2", key='button2', type="primary"):
             st.session_state.page = "predio_2"
     
     with col2:  # Coloca o próximo botão na mesma coluna
-        if st.button("Prédio 3", key='button3'):
+        if st.button("Prédio 3", key='button3', type="primary"):
             st.session_state.page = "predio_3"
+
+    st.markdown("""
+        <style>
+         button[kind="primary"] {
+        background-color: Black;
+        }
+
+        button[kind="seondary"] {
+            background-color: Grey;
+        }
+
+        button {
+            height: auto;
+            padding-top: 25px !important;   
+            padding-bottom: 25px !important;
+            padding-left: 75px !important;
+            padding-right: 75px !important;
+            margin-top: 25px !important;
+        }        
  
+        </style>
+    """, unsafe_allow_html=True)
+   
 
 def predio_1():
     st.title("Prédio 1")

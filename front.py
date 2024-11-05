@@ -1,10 +1,23 @@
 import streamlit as st
 import pandas as pd
-import requests
+import requests as rq
 
 Base_url= "http://127.0.0.1:5000"
 
 users = {}
+
+def fetch_data(endpoint):
+    try:
+        response = rq.get(f'{Base_url}/{endpoint}')
+        response.raise_for_status()
+        return response.json()
+    except rq.exceptions.HTTPError as err:
+        st.error(f"Erro ao acessar {endpoint}: {err}")
+        return None
+
+def display_table(data):
+    if data:
+        st.table(data)
 
 def cadastro():
     st.title("Cadastro")
@@ -79,61 +92,72 @@ def predios():
         </style>
     """, unsafe_allow_html=True)
 
-def mostrar_salas(predio_id):
-    # Dados de exemplo das salas divididas por andar
-    salas = {
-        "2º Andar": [
-            {"nome": "Sala 1", "status": "DISPONIVEL"},
-            {"nome": "Sala 2", "status": "INDISPONIVEL"},
-            {"nome": "Sala 3", "status": "DISPONIVEL"},
-            {"nome": "Sala 4", "status": "INDISPONIVEL"}
-        ],
-        "5º Andar": [
-            {"nome": "Sala 1", "status": "DISPONIVEL"},
-            {"nome": "Sala 2", "status": "DISPONIVEL"}
-        ]
-    }
+# def mostrar_salas(predio_id):
+#     # Dados de exemplo das salas divididas por andar
+#     salas = {
+#         "2º Andar": [
+#             {"nome": "Sala 1", "status": "DISPONIVEL"},
+#             {"nome": "Sala 2", "status": "INDISPONIVEL"},
+#             {"nome": "Sala 3", "status": "DISPONIVEL"},
+#             {"nome": "Sala 4", "status": "INDISPONIVEL"}
+#         ],
+#         "5º Andar": [
+#             {"nome": "Sala 1", "status": "DISPONIVEL"},
+#             {"nome": "Sala 2", "status": "DISPONIVEL"}
+#         ]
+#     }
 
-    st.markdown("""
-    <style>
-        .sala {
-            padding: 20px;
-            color: black;
-            font-weight: bold;
-            border-radius: 5px;
-            text-align: center;
-            margin: 10px;
-            width: 150px;
-            height: 100px;
-            display: inline-block;
-        }
-        .disponivel {
-            background-color: #4CAF50;
-        }
-        .indisponivel {
-            background-color: #F44336;
-        }
-    </style>
-    """, unsafe_allow_html=True)
+#     st.markdown("""
+#     <style>
+#         .sala {
+#             padding: 20px;
+#             color: black;
+#             font-weight: bold;
+#             border-radius: 5px;
+#             text-align: center;
+#             margin: 10px;
+#             width: 150px;
+#             height: 100px;
+#             display: inline-block;
+#         }
+#         .disponivel {
+#             background-color: #4CAF50;
+#         }
+#         .indisponivel {
+#             background-color: #F44336;
+#         }
+#     </style>
+#     """, unsafe_allow_html=True)
 
-    st.title(f"Prédio {predio_id}")
-    for andar, salas_do_andar in salas.items():
-        st.subheader(andar)
-        for sala in salas_do_andar:
-            status_class = "disponivel" if sala["status"] == "DISPONIVEL" else "indisponivel"
-            st.markdown(
-                f'<div class="sala {status_class}">{sala["nome"]}<br>{sala["status"]}</div>',
-                unsafe_allow_html=True
-            )
+#     st.title(f"Prédio {predio_id}")
+#     for andar, salas_do_andar in salas.items():
+#         st.subheader(andar)
+#         for sala in salas_do_andar:
+#             status_class = "disponivel" if sala["status"] == "DISPONIVEL" else "indisponivel"
+#             st.markdown(
+#                 f'<div class="sala {status_class}">{sala["nome"]}<br>{sala["status"]}</div>',
+#                 unsafe_allow_html=True
+#             )
 
 def predio_1():
-    mostrar_salas(predio_id=1)
+    st.title("Prédio 1")
+    st.write("Detalhes do Prédio 1")
+    predio = fetch_data('predios/p1')
+    display_table(predio)
+    
 
 def predio_2():
-    mostrar_salas(predio_id=2)
+    st.title("Prédio 2")
+    st.write("Detalhes do Prédio 2")    
+    predio = fetch_data('predios/p2')
+    display_table(predio)
 
 def predio_3():
-    mostrar_salas(predio_id=3)
+    st.title("Prédio 3")
+    st.write("Detalhes do Prédio 4")
+    predio = fetch_data('predios/p4')
+    display_table(predio)
+
 
 def Login():
     st.title("Login")
@@ -163,10 +187,12 @@ def main():
 
     if option == "Cadastro":
         cadastro()
+        
         if 'page' in st.session_state:
             del st.session_state['page']
     elif option == "Prédios":
         predios()
+        
         if 'page' in st.session_state:
             if st.session_state.page == "predio_1":
                 predio_1()

@@ -25,18 +25,26 @@ def cadastro():
     email = st.text_input("Email", key="signup_email")
     senha = st.text_input("Senha", type="password", key="signup_password")
 
-    if st.button("Cadastrar",type='primary'):
-        if email in users:
-            st.error("Email já cadastrado.")
+    if st.button("Cadastrar"):
+        if not email or not senha:
+            st.error("Email e senha são obrigatórios.")
         else:
-            users[email] = senha
-            st.success("Usuário cadastrado com sucesso! Agora você pode fazer login.")
-            st.session_state["signup_success"] = True
+            user_data = {"email": email, "senha": senha}
+            response = requests.post(f"{Base_url}/cadastro", json=user_data)
+            
+            if response.ok:  # Verifica se a resposta foi bem-sucedida
+                st.success("Usuário cadastrado com sucesso!")
+            else:
+                try:
+                    error_message = response.json().get('msg', 'Erro ao cadastrar.')
+                except ValueError:  # Captura erro de decodificação JSON
+                    error_message = response.text  # Usa o texto da resposta
+                st.error(error_message) 
     
     st.markdown("""
         <style>
         button[kind="primary"] {
-        background-color: black;
+            background-color: black;
         }
         
         button {
@@ -45,48 +53,34 @@ def cadastro():
             padding-bottom: 10px !important;
             padding-left: 25px !important;
             padding-right: 25px !important;       
-            
         }            
-
-
- 
         </style>
     """, unsafe_allow_html=True)
 
 
 def predios():
-    st.title("Predios")
+    st.title("Prédios")
 
-
-        # # Cria um espaço vazio antes do botão para centralizá-lo
     st.write("")  # Espaço vazio para ajudar na centralização
 
-    # Botões
+    # Botões centralizados
     col1, col2, col3 = st.columns(3)
 
-    with col2:  # Centraliza o botão na segunda coluna
+    with col2:
         if st.button("Prédio 1", key='button1', type="primary"):
             st.session_state.page = "predio_1"
-
-    # Outro botão, se necessário
-    with col2:  # Coloca o próximo botão na mesma coluna
+    with col2:
         if st.button("Prédio 2", key='button2', type="primary"):
             st.session_state.page = "predio_2"
-    
-    with col2:  # Coloca o próximo botão na mesma coluna
+    with col2:
         if st.button("Prédio 3", key='button3', type="primary"):
             st.session_state.page = "predio_3"
 
     st.markdown("""
         <style>
-         button[kind="primary"] {
-        background-color: Black;
+        button[kind="primary"] {
+            background-color: black;
         }
-
-        button[kind="seondary"] {
-            background-color: Grey;
-        }
-
         button {
             height: auto;
             padding-top: 25px !important;   
@@ -95,13 +89,59 @@ def predios():
             padding-right: 75px !important;
             margin-top: 25px !important;
         }        
- 
         </style>
     """, unsafe_allow_html=True)
-   
+
+# def mostrar_salas(predio_id):
+#     # Dados de exemplo das salas divididas por andar
+#     salas = {
+#         "2º Andar": [
+#             {"nome": "Sala 1", "status": "DISPONIVEL"},
+#             {"nome": "Sala 2", "status": "INDISPONIVEL"},
+#             {"nome": "Sala 3", "status": "DISPONIVEL"},
+#             {"nome": "Sala 4", "status": "INDISPONIVEL"}
+#         ],
+#         "5º Andar": [
+#             {"nome": "Sala 1", "status": "DISPONIVEL"},
+#             {"nome": "Sala 2", "status": "DISPONIVEL"}
+#         ]
+#     }
+
+#     st.markdown("""
+#     <style>
+#         .sala {
+#             padding: 20px;
+#             color: black;
+#             font-weight: bold;
+#             border-radius: 5px;
+#             text-align: center;
+#             margin: 10px;
+#             width: 150px;
+#             height: 100px;
+#             display: inline-block;
+#         }
+#         .disponivel {
+#             background-color: #4CAF50;
+#         }
+#         .indisponivel {
+#             background-color: #F44336;
+#         }
+#     </style>
+#     """, unsafe_allow_html=True)
+
+#     st.title(f"Prédio {predio_id}")
+#     for andar, salas_do_andar in salas.items():
+#         st.subheader(andar)
+#         for sala in salas_do_andar:
+#             status_class = "disponivel" if sala["status"] == "DISPONIVEL" else "indisponivel"
+#             st.markdown(
+#                 f'<div class="sala {status_class}">{sala["nome"]}<br>{sala["status"]}</div>',
+#                 unsafe_allow_html=True
+#             )
 
 def predio_1():
     st.title("Prédio 1")
+    st.write("Detalhes do Prédio 1")
     predio = fetch_data('predios/p1')
     display_table(predio)
     
@@ -118,6 +158,7 @@ def predio_3():
     predio = fetch_data('predios/p4')
     display_table(predio)
 
+
 def Login():
     st.title("Login")
 
@@ -125,29 +166,32 @@ def Login():
     senha = st.text_input("Senha", type="password", key="login_password")
 
     if st.button("Entrar"):
-        if senha not in users:
-            st.error("Usuário não cadastrado.")
-        elif users[email] != senha:
-            st.error("Senha incorreta.")
+        if not email or not senha:
+            st.error("Email e senha são obrigatórios.")
         else:
-            st.success("Login realizado com sucesso!")
-            st.session_state["logged_in"] = True 
-
+            user_data = {"email": email, "senha": senha}
+            response = requests.post(f"{Base_url}/login", json=user_data)
+            
+            if response.ok:  # Verifica se a resposta foi bem-sucedida
+                st.success("Login bem-sucedido!")
+            else:
+                try:
+                    error_message = response.json().get('msg', 'Erro ao fazer login.')
+                except ValueError:
+                    error_message = response.text
+                st.error(error_message)
 
 def main():
     st.sidebar.title("Menu")
-    option = st.sidebar.radio("Navegar", ["Cadastro", "Login", "Predios"])
-
+    option = st.sidebar.radio("Navegar", ["Cadastro", "Login", "Prédios"])
 
     if option == "Cadastro":
         cadastro()
-
         
         if 'page' in st.session_state:
             del st.session_state['page']
-    elif option == "Predios":
+    elif option == "Prédios":
         predios()
-
         
         if 'page' in st.session_state:
             if st.session_state.page == "predio_1":
@@ -156,11 +200,8 @@ def main():
                 predio_2()
             elif st.session_state.page == "predio_3":
                 predio_3()
-
     elif option == "Login":
         Login()
-    
-
 
 if __name__ == "__main__":
     main()

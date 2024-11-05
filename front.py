@@ -2,11 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 
-# 
-Base_url= "http://127.0.0.1:5000"
-
-users = {}
-
+Base_url = "http://127.0.0.1:5000"
 
 def fetch_data(endpoint):
     try:
@@ -17,71 +13,35 @@ def fetch_data(endpoint):
         st.error(f"Erro ao acessar {endpoint}: {err}")
         return None
 
-def display_table(data):
-    if data:
-        st.table(data)
-
 def cadastro():
     st.title("Cadastro")
-
     email = st.text_input("Email", key="signup_email")
     senha = st.text_input("Senha", type="password", key="signup_password")
 
-    if st.button("Cadastrar",type='primary'):
-        if email in users:
-            st.error("Email já cadastrado.")
-        else:
-            user_data = {"email": email, "senha": senha}
-            response = requests.post(f"{Base_url}/cadastro", json=user_data)
-            
-            if response.ok:  # Verifica se a resposta foi bem-sucedida
-                st.success("Usuário cadastrado com sucesso!")
-            else:
-                try:
-                    error_message = response.json().get('msg', 'Erro ao cadastrar.')
-                except ValueError:  # Captura erro de decodificação JSON
-                    error_message = response.text  # Usa o texto da resposta
-                st.error(error_message) 
-    
-    st.markdown("""
-        <style>
-        button[kind="primary"] {
-            background-color: black;
-        }
+    if st.button("Cadastrar", type='primary'):
+        user_data = {"email": email, "senha": senha}
+        response = requests.post(f"{Base_url}/cadastro", json=user_data)
         
-        button {
-            height: auto;
-            padding-top: 10px !important;   
-            padding-bottom: 10px !important;
-            padding-left: 25px !important;
-            padding-right: 25px !important;       
-        }            
-        </style>
-    """, unsafe_allow_html=True)
+        if response.ok:
+            st.success("Usuário cadastrado com sucesso!")
+        else:
+            error_message = response.json().get('msg', 'Erro ao cadastrar.')
+            st.error(error_message)
 
 def Login():
     st.title("Login")
-
     email = st.text_input("Email", key="login_email")
     senha = st.text_input("Senha", type="password", key="login_password")
 
     if st.button("Entrar"):
-        if not email or not senha:
-            st.error("Email e senha são obrigatórios.")
+        user_data = {"email": email, "senha": senha}
+        response = requests.post(f"{Base_url}/login", json=user_data)
+        
+        if response.ok:
+            st.success("Login bem-sucedido!")
         else:
-            user_data = {"email": email, "senha": senha}
-            response = requests.post(f"{Base_url}/login", json=user_data)
-            
-            if response.ok:  # Verifica se a resposta foi bem-sucedida
-                st.success("Login bem-sucedido!")
-            else:
-                try:
-                    error_message = response.json().get('msg', 'Erro ao fazer login.')
-                except ValueError:
-                    error_message = response.text
-                st.error(error_message)
-
-
+            error_message = response.json().get('msg', 'Erro ao fazer login.')
+            st.error(error_message)
 
 def predios():
     st.title("Prédios")
@@ -116,10 +76,18 @@ def predios():
         }        
         </style>
     """, unsafe_allow_html=True)
+
+# Função para exibir uma tela em branco com informações do aquário
+def tela_aquario(predio, andar, numero):
+    st.title(f"Detalhes do Aquário {numero}")
+    st.write(f"Prédio: {predio}")
+    st.write(f"Andar: {andar}º")
+    st.write("Aqui é a tela de detalhes do aquário. Adicione mais informações conforme necessário.")
+
+# Função para renderizar aquários como botões
 def renderizar_aquarios(dados_predio, nome_predio):
     st.title(f"Prédio {nome_predio}")
     
-    # CSS para estilizar apenas os aquários e andares
     st.markdown("""
         <style>
         .aquario-card {
@@ -132,6 +100,7 @@ def renderizar_aquarios(dados_predio, nome_predio):
             color: white;
             font-weight: bold;
             border-radius: 8px;
+            cursor: pointer;
         }
         .disponivel {
             background-color: #4CAF50; /* Verde */
@@ -155,23 +124,22 @@ def renderizar_aquarios(dados_predio, nome_predio):
         andar = andar_info['andar']
         aquarios = andar_info['aquarios']
         
-        # Cabeçalho do andar
         st.markdown(f'<div class="andar-header">Andar {andar}º</div>', unsafe_allow_html=True)
         
-        # Exibição dos aquários como cartões
-        for aquario in aquarios:
+        colunas = st.columns(len(aquarios))
+        for idx, aquario in enumerate(aquarios):
             numero = aquario['numero']
             ocupado = aquario['ocupado']
             status_class = "disponivel" if not ocupado else "indisponivel"
             status_text = "DISPONÍVEL" if not ocupado else "INDISPONÍVEL"
             
-            # Renderiza cada aquário com a classe CSS correspondente
-            st.markdown(
-                f'<div class="aquario-card {status_class}">Sala {numero}<br>{status_text}</div>',
-                unsafe_allow_html=True
-            )
+            with colunas[idx]:
+                if st.button(f"Aquário {numero}\n{status_text}", key=f"{nome_predio}_{andar}_{numero}"):
+                    st.session_state['predio'] = nome_predio
+                    st.session_state['andar'] = andar
+                    st.session_state['numero'] = numero
+                    st.session_state['page'] = "tela_aquario"
 
-# Funções para exibir os aquários de cada prédio
 def predio_1():
     response = fetch_data("predios/p1")
     if response:
@@ -192,49 +160,34 @@ def predio_3():
         renderizar_aquarios(response, "P4")
     else:
         st.error("Erro ao carregar os dados do Prédio 3")
-# def predio_1():
-#     st.title("Prédio 1")
-#     st.write("Detalhes do Prédio 1")
-#     predio = fetch_data('predios/p1')
-#     display_table(predio)
-    
-
-# def predio_2():
-#     st.title("Prédio 2")
-#     st.write("Detalhes do Prédio 2")    
-#     predio = fetch_data('predios/p2')
-#     display_table(predio)
-
-# def predio_3():
-#     st.title("Prédio 3")
-#     st.write("Detalhes do Prédio 4")
-#     predio = fetch_data('predios/p4')
-#     display_table(predio)
-
-
-
 
 def main():
-    st.sidebar.title("Menu")
-    option = st.sidebar.radio("Navegar", ["Cadastro", "Login", "Prédios"])
+    if 'page' not in st.session_state:
+        st.session_state['page'] = "menu_principal"
 
-    if option == "Cadastro":
-        cadastro()
-        
-        if 'page' in st.session_state:
-            del st.session_state['page']
-    elif option == "Prédios":
-        predios()
-        
-        if 'page' in st.session_state:
-            if st.session_state.page == "predio_1":
-                predio_1()
-            elif st.session_state.page == "predio_2":
-                predio_2()
-            elif st.session_state.page == "predio_3":
-                predio_3()
-    elif option == "Login":
-        Login()
+    if st.session_state['page'] == "menu_principal":
+        st.sidebar.title("Menu")
+        option = st.sidebar.radio("Navegar", ["Cadastro", "Login", "Prédios"])
+
+        if option == "Cadastro":
+            cadastro()
+        elif option == "Login":
+            Login()
+        elif option == "Prédios":
+            predios()
+
+    elif st.session_state['page'] == "predio_1":
+        predio_1()
+    elif st.session_state['page'] == "predio_2":
+        predio_2()
+    elif st.session_state['page'] == "predio_3":
+        predio_3()
+    elif st.session_state['page'] == "tela_aquario":
+        tela_aquario(
+            st.session_state['predio'],
+            st.session_state['andar'],
+            st.session_state['numero']
+        )
 
 if __name__ == "__main__":
     main()

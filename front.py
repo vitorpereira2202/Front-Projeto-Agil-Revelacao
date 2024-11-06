@@ -56,8 +56,8 @@ def predios():
         if st.button("Prédio 2", key='button2', type="primary"):
             st.session_state.page = "predio_2"
     with col2:
-        if st.button("Prédio 3", key='button3', type="primary"):
-            st.session_state.page = "predio_3"
+        if st.button("Prédio 4", key='button3', type="primary"):
+            st.session_state.page = "predio_4"
 
     st.markdown("""
         <style>
@@ -105,6 +105,9 @@ def tela_aquario(predio, andar, numero):
         else:
             st.error(response.json().get("msg", "Erro ao atualizar o status do aquário")) 
 
+    if st.button("Voltar"):
+        st.session_state['page'] = f"predio_{predio[-1]}" 
+
 # Função para renderizar aquários como botões
 def renderizar_aquarios(dados_predio, nome_predio):
     st.title(f"Prédio {nome_predio}")
@@ -130,13 +133,14 @@ def renderizar_aquarios(dados_predio, nome_predio):
             background-color: #F44336; /* Vermelho */
         }
         .andar-header {
-            background-color: #e0e0e0;
+            background-color: #F44336;
             padding: 10px;
             text-align: center;
             font-size: 1.1em;
             font-weight: bold;
             border-radius: 5px;
             margin-top: 20px;
+            margin-bottom: 10px;
         }
         </style>
     """, unsafe_allow_html=True)
@@ -168,6 +172,9 @@ def predio_1():
     else:
         st.error("Erro ao carregar os dados do Prédio 1")
 
+    if st.button("Voltar"):
+        st.session_state['page'] = "predios"
+
 def predio_2():
     response = fetch_data("predios/p2")
     if response:
@@ -175,12 +182,18 @@ def predio_2():
     else:
         st.error("Erro ao carregar os dados do Prédio 2")
 
-def predio_3():
+    if st.button("Voltar"):
+        st.session_state['page'] = "predios"
+
+def predio_4():
     response = fetch_data("predios/p4")
     if response:
         renderizar_aquarios(response, "P4")
     else:
-        st.error("Erro ao carregar os dados do Prédio 3")
+        st.error("Erro ao carregar os dados do Prédio 4")
+
+    if st.button("Voltar"):
+        st.session_state['page'] = "predios"
 
 def main():
     if 'page' not in st.session_state:
@@ -201,14 +214,16 @@ def main():
         predio_1()
     elif st.session_state['page'] == "predio_2":
         predio_2()
-    elif st.session_state['page'] == "predio_3":
-        predio_3()
+    elif st.session_state['page'] == "predio_4":
+        predio_4()
     elif st.session_state['page'] == "tela_aquario":
         tela_aquario(
             st.session_state['predio'],
             st.session_state['andar'],
             st.session_state['numero']
         )
+    elif st.session_state['page'] == "predios":
+        predios()
 
 if __name__ == "__main__":
     main()

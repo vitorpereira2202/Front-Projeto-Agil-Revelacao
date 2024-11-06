@@ -106,7 +106,7 @@ def tela_aquario(predio, andar, numero):
             st.error(response.json().get("msg", "Erro ao atualizar o status do aquário")) 
 
     if st.button("Voltar"):
-        st.session_state['page'] = f"predio_{predio[-1]}" 
+        st.session_state['page'] = "predios" 
 
 # Função para renderizar aquários como botões
 def renderizar_aquarios(dados_predio, nome_predio):

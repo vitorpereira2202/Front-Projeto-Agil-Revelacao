@@ -34,7 +34,7 @@ def cadastro():
             error_message = response.json().get('msg', 'Erro ao cadastrar.')
             st.error(error_message)
 
-def Login():
+def login():
     st.title("Login")
     email = st.text_input("Email", key="login_email")
     senha = st.text_input("Senha", type="password", key="login_password")
@@ -45,6 +45,7 @@ def Login():
         
         if response.ok:
             st.success("Login bem-sucedido!")
+            st.session_state['is_authenticated'] = True  # Define como autenticado
             # Armazena as credenciais na sessão
             st.session_state['email'] = email
             st.session_state['senha'] = senha
@@ -55,6 +56,11 @@ def Login():
             st.error(error_message)
 
 def predios():
+    # Verifica autenticação antes de mostrar a tela de prédios
+    if not st.session_state.get('is_authenticated', False):
+        st.error("Você precisa fazer login para acessar a tela de Prédios.")
+        return
+
     if not st.session_state.get('logged_in'):
         st.error("Você precisa estar logado para acessar esta página.")
         return
@@ -91,11 +97,18 @@ def predios():
         </style>
     """, unsafe_allow_html=True)
 
+    if st.button("Voltar"):
+        st.session_state['page'] = "menu_principal"
+
 # Função para exibir uma tela em branco com informações do aquário e botão para alterar ocupação
 def tela_aquario(predio, andar, numero):
     st.title(f"Detalhes do Aquário {numero}")
     st.write(f"Prédio: {predio}")
     st.write(f"Andar: {andar}º")
+
+    # Botão para ocupar/desocupar o aquário
+    ocupacao = fetch_data(f"predios/{predio}/andar/{andar}/aquario/{numero}")
+    ocupado = ocupacao.get("ocupado", False) if ocupacao else False
 
     # Preparar o cabeçalho com as credenciais
     headers = {}
@@ -128,7 +141,7 @@ def tela_aquario(predio, andar, numero):
             st.error(response.json().get("msg", "Erro ao desocupar o aquário"))
 
     if st.button("Voltar"):
-        st.session_state['page'] = f"predio_{predio[-1]}"
+        st.session_state['page'] = "predios" 
 
 # Função para renderizar aquários como botões
 def renderizar_aquarios(dados_predio, nome_predio):
@@ -218,6 +231,9 @@ def predio_4():
         st.session_state['page'] = "predios"
 
 def main():
+    if 'is_authenticated' not in st.session_state:
+        st.session_state['is_authenticated'] = False
+
     if 'page' not in st.session_state:
         st.session_state['page'] = "menu_principal"
     if 'logged_in' not in st.session_state:
@@ -243,7 +259,9 @@ def main():
         if option == "Cadastro":
             cadastro()
         elif option == "Login":
-            Login()
+            login()
+        elif option == "Prédios":
+            predios()
 
     # Navegação entre as páginas
     if st.session_state['page'] == "predio_1":

@@ -26,7 +26,7 @@ def cadastro():
             error_message = response.json().get('msg', 'Erro ao cadastrar.')
             st.error(error_message)
 
-def Login():
+def login():
     st.title("Login")
     email = st.text_input("Email", key="login_email")
     senha = st.text_input("Senha", type="password", key="login_password")
@@ -37,11 +37,17 @@ def Login():
         
         if response.ok:
             st.success("Login bem-sucedido!")
+            st.session_state['is_authenticated'] = True  # Define como autenticado
         else:
             error_message = response.json().get('msg', 'Erro ao fazer login.')
             st.error(error_message)
 
 def predios():
+    # Verifica autenticação antes de mostrar a tela de prédios
+    if not st.session_state.get('is_authenticated', False):
+        st.error("Você precisa fazer login para acessar a tela de Prédios.")
+        return
+
     st.title("Prédios")
 
     st.write("")  # Espaço vazio para ajudar na centralização
@@ -75,6 +81,9 @@ def predios():
         </style>
     """, unsafe_allow_html=True)
 
+    if st.button("Voltar"):
+        st.session_state['page'] = "menu_principal"
+
 # Função para exibir uma tela em branco com informações do aquário e botão para alterar ocupação
 def tela_aquario(predio, andar, numero):
     st.title(f"Detalhes do Aquário {numero}")
@@ -82,9 +91,8 @@ def tela_aquario(predio, andar, numero):
     st.write(f"Andar: {andar}º")
 
     # Botão para ocupar/desocupar o aquário
-    ocupacao = fetch_data(f"predios/{predio}/andar/{andar}/aquario/{numero}")  # Exemplo de endpoint para buscar o status atual
+    ocupacao = fetch_data(f"predios/{predio}/andar/{andar}/aquario/{numero}")
     ocupado = ocupacao.get("ocupado", False) if ocupacao else False
-
 
     if st.button("Ocupar"):
         endpoint = f'aquarios/{"ocupar"}/{predio}/{andar}/{numero}'
@@ -196,6 +204,9 @@ def predio_4():
         st.session_state['page'] = "predios"
 
 def main():
+    if 'is_authenticated' not in st.session_state:
+        st.session_state['is_authenticated'] = False
+
     if 'page' not in st.session_state:
         st.session_state['page'] = "menu_principal"
 
@@ -206,7 +217,7 @@ def main():
         if option == "Cadastro":
             cadastro()
         elif option == "Login":
-            Login()
+            login()
         elif option == "Prédios":
             predios()
 

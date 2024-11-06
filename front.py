@@ -37,10 +37,19 @@ def login():
         
         if response.ok:
             st.success("Login bem-sucedido!")
-            st.session_state['is_authenticated'] = True  # Define como autenticado
+            st.session_state['is_authenticated'] = True
+            st.session_state['user_email'] = email  # Armazena o e-mail do usuário logado
         else:
             error_message = response.json().get('msg', 'Erro ao fazer login.')
             st.error(error_message)
+
+def logout():
+    if st.sidebar.button("Logout"):
+        st.session_state['is_authenticated'] = False
+        st.session_state.pop('user_email', None)
+        st.session_state['page'] = "menu_principal"  # Redireciona para o menu principal
+        st.success("Você foi desconectado.")
+
 
 def predios():
     # Verifica autenticação antes de mostrar a tela de prédios
@@ -48,13 +57,15 @@ def predios():
         st.error("Você precisa fazer login para acessar a tela de Prédios.")
         return
 
+    # Exibe mensagem de login e botão de logout na barra lateral
+    st.sidebar.write(f"Você está logado como: {st.session_state.get('user_email')}")
+    logout()  # Adiciona o botão de logout na barra lateral
+
     st.title("Prédios")
+    st.write("")
 
-    st.write("")  # Espaço vazio para ajudar na centralização
-
-    # Botões centralizados
+    # Botões de seleção dos prédios
     col1, col2, col3 = st.columns(3)
-
     with col2:
         if st.button("Prédio 1", key='button1', type="primary"):
             st.session_state.page = "predio_1"
@@ -81,18 +92,15 @@ def predios():
         </style>
     """, unsafe_allow_html=True)
 
-    if st.button("Voltar"):
-        st.session_state['page'] = "menu_principal"
-
-# Função para exibir uma tela em branco com informações do aquário e botão para alterar ocupação
 def tela_aquario(predio, andar, numero):
     st.title(f"Detalhes do Aquário {numero}")
     st.write(f"Prédio: {predio}")
     st.write(f"Andar: {andar}º")
 
     # Botão para ocupar/desocupar o aquário
-    ocupacao = fetch_data(f"predios/{predio}/andar/{andar}/aquario/{numero}")
+    ocupacao = fetch_data(f"predios/{predio}/andar/{andar}/aquario/{numero}")  # Exemplo de endpoint para buscar o status atual
     ocupado = ocupacao.get("ocupado", False) if ocupacao else False
+
 
     if st.button("Ocupar"):
         endpoint = f'aquarios/{"ocupar"}/{predio}/{andar}/{numero}'
@@ -116,7 +124,6 @@ def tela_aquario(predio, andar, numero):
     if st.button("Voltar"):
         st.session_state['page'] = "predios" 
 
-# Função para renderizar aquários como botões
 def renderizar_aquarios(dados_predio, nome_predio):
     st.title(f"Prédio {nome_predio}")
     
@@ -203,6 +210,7 @@ def predio_4():
     if st.button("Voltar"):
         st.session_state['page'] = "predios"
 
+# Função principal para gerenciar as páginas e autenticação
 def main():
     if 'is_authenticated' not in st.session_state:
         st.session_state['is_authenticated'] = False

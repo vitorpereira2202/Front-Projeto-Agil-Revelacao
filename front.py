@@ -1,16 +1,14 @@
 import streamlit as st
-import pandas as pd
 import requests
 
 Base_url = "http://127.0.0.1:5000"
 
 def fetch_data(endpoint):
     try:
-        response = requests.get(f'{Base_url}/{endpoint}')
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.HTTPError as err:
-        st.error(f"Erro ao acessar {endpoint}: {err}")
+        response = requests.get(f"{Base_url}/{endpoint}")
+        return response.json() if response.ok else None
+    except requests.exceptions.RequestException as e:
+        st.error(f"Erro ao acessar {endpoint}: {e}")
         return None
 
 def cadastro():
@@ -77,12 +75,35 @@ def predios():
         </style>
     """, unsafe_allow_html=True)
 
-# Função para exibir uma tela em branco com informações do aquário
+# Função para exibir uma tela em branco com informações do aquário e botão para alterar ocupação
 def tela_aquario(predio, andar, numero):
     st.title(f"Detalhes do Aquário {numero}")
     st.write(f"Prédio: {predio}")
     st.write(f"Andar: {andar}º")
-    st.write("Aqui é a tela de detalhes do aquário. Adicione mais informações conforme necessário.")
+
+    # Botão para ocupar/desocupar o aquário
+    ocupacao = fetch_data(f"predios/{predio}/andar/{andar}/aquario/{numero}")  # Exemplo de endpoint para buscar o status atual
+    ocupado = ocupacao.get("ocupado", False) if ocupacao else False
+
+
+    if st.button("Ocupar"):
+        endpoint = f'aquarios/{"ocupar"}/{predio}/{andar}/{numero}'
+        response = requests.put(f"{Base_url}/{endpoint}")
+        
+        if response.ok:
+            novo_status = "ocupado"
+            st.success(f"Aquário {novo_status} com sucesso!")
+        else:
+            st.error(response.json().get("msg", "Erro ao atualizar o status do aquário")) 
+    if st.button("Desocupar"):
+        endpoint = f'aquarios/{"desocupar"}/{predio}/{andar}/{numero}'
+        response = requests.put(f"{Base_url}/{endpoint}")
+        
+        if response.ok:
+            novo_status = "desocupado"
+            st.success(f"Aquário {novo_status} com sucesso!")
+        else:
+            st.error(response.json().get("msg", "Erro ao atualizar o status do aquário")) 
 
 # Função para renderizar aquários como botões
 def renderizar_aquarios(dados_predio, nome_predio):
@@ -94,7 +115,7 @@ def renderizar_aquarios(dados_predio, nome_predio):
             display: inline-block;
             padding: 20px;
             margin: 10px;
-            width: 120px;
+            width: 120px; 
             height: 80px;
             text-align: center;
             color: white;
@@ -134,7 +155,7 @@ def renderizar_aquarios(dados_predio, nome_predio):
             status_text = "DISPONÍVEL" if not ocupado else "INDISPONÍVEL"
             
             with colunas[idx]:
-                if st.button(f"Aquário {numero}\n{status_text}", key=f"{nome_predio}_{andar}_{numero}"):
+                if st.button(f"Aquário {numero}\n{status_text}", key=f"{nome_predio}{andar}{numero}"):
                     st.session_state['predio'] = nome_predio
                     st.session_state['andar'] = andar
                     st.session_state['numero'] = numero
@@ -189,5 +210,5 @@ def main():
             st.session_state['numero']
         )
 
-if __name__ == "__main__":
+if __name__ == "_main_":
     main()

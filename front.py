@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 
-Base_url = "http://127.0.0.1:5000"
+Base_url = "https://projeto-agil-revelacao-1.onrender.com"
 
 def fetch_data(endpoint):
     try:
